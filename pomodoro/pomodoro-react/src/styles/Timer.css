@@ -1,0 +1,112 @@
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.timer-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.phase-label {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.cycle-label {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.timer-display {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 2rem 0;
+}
+
+.progress-ring {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    #4CAF50 calc(var(--progress) * 1%),
+    #f0f0f0 calc(var(--progress) * 1%)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.progress-ring::before {
+  content: '';
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  background: white;
+  border-radius: 50%;
+}
+
+.time-text {
+  position: relative;
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #333;
+  z-index: 1;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.control-button {
+  background: none;
+  border: 2px solid #4CAF50;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4CAF50;
+}
+
+.control-button:hover {
+  background: #4CAF50;
+  color: white;
+}
+
+.timer-stats {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Phase-specific colors */
+.timer-container[data-phase="focus"] .progress-ring {
+  background: conic-gradient(
+    #f44336 calc(var(--progress) * 1%),
+    #f0f0f0 calc(var(--progress) * 1%)
+  );
+}
+
+.timer-container[data-phase="shortBreak"] .progress-ring,
+.timer-container[data-phase="longBreak"] .progress-ring {
+  background: conic-gradient(
+    #4CAF50 calc(var(--progress) * 1%),
+    #f0f0f0 calc(var(--progress) * 1%)
+  );
+} 
