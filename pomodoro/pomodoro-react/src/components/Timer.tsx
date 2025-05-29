@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RefreshCw, Settings } from 'lucide-react';
 import type { TimerSettings } from '../types/timer';
 import '../styles/Timer.css';
@@ -10,12 +10,47 @@ interface TimerProps {
   settings: TimerSettings;
 }
 
+declare global {
+  interface Window {
+    webkitAudioContext: typeof AudioContext;
+  }
+}
+
 export const Timer = ({ onSettingsClick, settings }: TimerProps) => {
   const [phase, setPhase] = useState<TimerPhase>('focus');
   const [timeLeft, setTimeLeft] = useState(settings.focusTime * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
   const [currentCycle, setCurrentCycle] = useState(1);
+
+  // 알림음 재생 함수
+  const playNotification = useCallback(() => {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const audioContext = new AudioContextClass();
+    
+    // 알림음 생성
+    const createBeep = (frequency: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.value = frequency;
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    };
+
+    // 두 번의 비프음 재생 (높은음 -> 낮은음)
+    createBeep(880, 0.15); // A5 음
+    setTimeout(() => createBeep(587.33, 0.15), 200); // D5 음
+  }, []);
 
   // 설정이 변경될 때마다 타이머 시간 업데이트
   useEffect(() => {
@@ -37,18 +72,16 @@ export const Timer = ({ onSettingsClick, settings }: TimerProps) => {
         setTimeLeft((time) => time - 1);
       }, 1000);
     } else if (timeLeft === 0) {
+      playNotification();
       handlePhaseComplete();
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, playNotification]);
 
   const handlePhaseComplete = () => {
-    const audio = new Audio('/notification.mp3');
-    audio.play();
-
     if (phase === 'focus') {
       setPomodorosCompleted((prev) => prev + 1);
       if (currentCycle === settings.pomodoroCount) {
