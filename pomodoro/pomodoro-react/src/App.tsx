@@ -22,7 +22,10 @@ function App() {
 
   return (
     <div className="app">
-      <Timer onSettingsClick={() => setShowSettings(true)} />
+      <Timer 
+        onSettingsClick={() => setShowSettings(true)} 
+        settings={settings}
+      />
       {showSettings && (
         <Settings
           onClose={() => setShowSettings(false)}

@@ -1,19 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, RefreshCw, Settings } from 'lucide-react';
+import type { TimerSettings } from '../types/timer';
 import '../styles/Timer.css';
 
 type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
 
 interface TimerProps {
   onSettingsClick: () => void;
+  settings: TimerSettings;
 }
 
-export const Timer = ({ onSettingsClick }: TimerProps) => {
+export const Timer = ({ onSettingsClick, settings }: TimerProps) => {
   const [phase, setPhase] = useState<TimerPhase>('focus');
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(settings.focusTime * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
   const [currentCycle, setCurrentCycle] = useState(1);
+
+  // 설정이 변경될 때마다 타이머 시간 업데이트
+  useEffect(() => {
+    setIsRunning(false);
+    if (phase === 'focus') {
+      setTimeLeft(settings.focusTime * 60);
+    } else if (phase === 'shortBreak') {
+      setTimeLeft(settings.shortBreakTime * 60);
+    } else {
+      setTimeLeft(settings.longBreakTime * 60);
+    }
+  }, [settings, phase]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -37,18 +51,18 @@ export const Timer = ({ onSettingsClick }: TimerProps) => {
 
     if (phase === 'focus') {
       setPomodorosCompleted((prev) => prev + 1);
-      if (currentCycle === 4) {
+      if (currentCycle === settings.pomodoroCount) {
         setPhase('longBreak');
-        setTimeLeft(15 * 60); // 15 minutes
+        setTimeLeft(settings.longBreakTime * 60);
         setCurrentCycle(1);
       } else {
         setPhase('shortBreak');
-        setTimeLeft(5 * 60); // 5 minutes
+        setTimeLeft(settings.shortBreakTime * 60);
         setCurrentCycle((prev) => prev + 1);
       }
     } else {
       setPhase('focus');
-      setTimeLeft(25 * 60); // 25 minutes
+      setTimeLeft(settings.focusTime * 60);
     }
     setIsRunning(false);
   };
@@ -60,11 +74,11 @@ export const Timer = ({ onSettingsClick }: TimerProps) => {
   const resetTimer = () => {
     setIsRunning(false);
     if (phase === 'focus') {
-      setTimeLeft(25 * 60);
+      setTimeLeft(settings.focusTime * 60);
     } else if (phase === 'shortBreak') {
-      setTimeLeft(5 * 60);
+      setTimeLeft(settings.shortBreakTime * 60);
     } else {
-      setTimeLeft(15 * 60);
+      setTimeLeft(settings.longBreakTime * 60);
     }
   };
 
@@ -75,15 +89,19 @@ export const Timer = ({ onSettingsClick }: TimerProps) => {
   };
 
   const calculateProgress = (): number => {
-    const totalTime = phase === 'focus' ? 25 * 60 : phase === 'shortBreak' ? 5 * 60 : 15 * 60;
+    const totalTime = phase === 'focus' 
+      ? settings.focusTime * 60 
+      : phase === 'shortBreak' 
+        ? settings.shortBreakTime * 60 
+        : settings.longBreakTime * 60;
     return ((totalTime - timeLeft) / totalTime) * 100;
   };
 
   return (
-    <div className="timer-container">
+    <div className="timer-container" data-phase={phase}>
       <div className="timer-header">
         <span className="phase-label">{phase === 'focus' ? '집중 시간' : phase === 'shortBreak' ? '짧은 휴식' : '긴 휴식'}</span>
-        <span className="cycle-label">#{currentCycle}/4</span>
+        <span className="cycle-label">#{currentCycle}/{settings.pomodoroCount}</span>
       </div>
 
       <div className="timer-display">

@@ -33,9 +33,9 @@ export const Settings = ({ onClose, onSave, initialSettings }: SettingsProps) =>
             <input
               type="range"
               id="focusTime"
-              min="15"
+              min="1"
               max="60"
-              step="5"
+              step="1"
               value={settings.focusTime}
               onChange={(e) => setSettings({ ...settings, focusTime: Number(e.target.value) })}
             />
